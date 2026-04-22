@@ -1,0 +1,79 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row">
+
+        <!-- 🔹 Left Side: Images -->
+        <div class="col-md-6">
+
+            <!-- ✅ Main Image -->
+            {% if product.main_image %}
+                <img id="mainImage" 
+                     src="{{ product.main_image.url }}" 
+                     class="img-fluid mb-3 border rounded">
+            {% endif %}
+
+            <!-- 🔥 Thumbnail Gallery -->
+            <div class="d-flex gap-2 flex-wrap">
+                
+                <!-- main image as first thumbnail -->
+                {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" 
+                         width="70" 
+                         class="border p-1 rounded"
+                         style="cursor:pointer"
+                         onclick="changeImage(this)">
+                {% endif %}
+
+                <!-- extra images -->
+                {% for img in product.images.all %}
+                    <img src="{{ img.image.url }}" 
+                         width="70" 
+                         class="border p-1 rounded"
+                         style="cursor:pointer"
+                         onclick="changeImage(this)">
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <!-- 🔹 Right Side: Product Details -->
+        <div class="col-md-6">
+
+            <h2>{{ product.name }}</h2>
+
+            <h4 class="text-success mb-3">
+                ₹{{ product.price }}
+            </h4>
+
+            <p>
+                {{ product.description }}
+            </p>
+
+            <!-- 🔥 Action Buttons -->
+            <button class="btn btn-success w-50 mb-2">
+                Add to Cart
+            </button>
+
+            <button class="btn btn-outline-dark w-50">
+                Buy Now
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- 🔥 Image Switch Script -->
+<script>
+function changeImage(element) {
+    document.getElementById("mainImage").src = element.src;
+}
+</script>
+
+{% endblock %}
