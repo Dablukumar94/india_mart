@@ -6,36 +6,41 @@
 
     <div class="row">
 
-        <!-- 🔹 Left Side: Images -->
+        <!-- 🔹 Left Side: Images Section -->
         <div class="col-md-6">
 
-            <!-- ✅ Main Image -->
-            {% if product.main_image %}
-                <img id="mainImage" 
-                     src="{{ product.main_image.url }}" 
-                     class="img-fluid mb-3 border rounded">
-            {% endif %}
+            <div class="row">
 
-            <!-- 🔥 Thumbnail Gallery -->
-            <div class="d-flex gap-2 flex-wrap">
-                
-                <!-- main image as first thumbnail -->
-                {% if product.main_image %}
-                    <img src="{{ product.main_image.url }}" 
-                         width="70" 
-                         class="border p-1 rounded"
-                         style="cursor:pointer"
-                         onclick="changeImage(this)">
-                {% endif %}
+                <!-- 🔹 Vertical Gallery (Left) -->
+                <div class="col-2 d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
 
-                <!-- extra images -->
-                {% for img in product.images.all %}
-                    <img src="{{ img.image.url }}" 
-                         width="70" 
-                         class="border p-1 rounded"
-                         style="cursor:pointer"
-                         onclick="changeImage(this)">
-                {% endfor %}
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}"
+                             class="img-fluid border rounded p-1"
+                             style="cursor:pointer"
+                             onclick="changeImage(this)">
+                    {% endif %}
+
+                    {% for img in product.images.all %}
+                        <img src="{{ img.image.url }}"
+                             class="img-fluid border rounded p-1"
+                             style="cursor:pointer"
+                             onclick="changeImage(this)">
+                    {% endfor %}
+
+                </div>
+
+                <!-- 🔹 Main Image (Right) -->
+                <div class="col-10 text-center">
+
+                    {% if product.main_image %}
+                        <img id="mainImage"
+                             src="{{ product.main_image.url }}"
+                             class="img-fluid border rounded"
+                             style="max-height: 400px; object-fit: contain;">
+                    {% endif %}
+
+                </div>
 
             </div>
 
@@ -54,7 +59,7 @@
                 {{ product.description }}
             </p>
 
-            <!-- 🔥 Action Buttons -->
+            <!-- 🔥 Buttons -->
             <button class="btn btn-success w-50 mb-2">
                 Add to Cart
             </button>
