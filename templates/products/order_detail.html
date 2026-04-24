@@ -1,0 +1,74 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">📦 Order Details</h2>
+
+    <!-- 🔹 Order Info -->
+    <div class="card p-3 mb-4 shadow-sm">
+        <p><strong>Order ID:</strong> {{ order.id }}</p>
+        <p><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</p>
+        <p><strong>Status:</strong> 
+            {% if order.status == "pending" %}
+                <span class="badge bg-warning text-dark">Pending</span>
+            {% elif order.status == "processing" %}
+                <span class="badge bg-info text-dark">Processing</span>
+            {% elif order.status == "shipped" %}
+                <span class="badge bg-primary">Shipped</span>
+            {% elif order.status == "delivered" %}
+                <span class="badge bg-success">Delivered</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- 🔹 Items -->
+    {% for item in order.items.all %}
+    <div class="card mb-3 p-3 shadow-sm">
+
+        <div class="row align-items-center">
+
+            <!-- 🔸 Image -->
+            <div class="col-md-2">
+                {% if item.product.main_image %}
+                    <img src="{{ item.product.main_image.url }}" 
+                         class="img-fluid rounded">
+                {% else %}
+                    <img src="{% static 'images/no-image.png' %}" 
+                         class="img-fluid rounded">
+                {% endif %}
+            </div>
+
+            <!-- 🔸 Info -->
+            <div class="col-md-6">
+                <h6>{{ item.product.name }}</h6>
+                <p class="text-muted small mb-1">
+                    {{ item.product.description|truncatechars:60 }}
+                </p>
+            </div>
+
+            <!-- 🔸 Qty -->
+            <div class="col-md-2 text-center">
+                <p>Qty: {{ item.quantity }}</p>
+            </div>
+
+            <!-- 🔸 Price -->
+            <div class="col-md-2 text-end">
+                <p class="fw-bold">₹{{ item.price }}</p>
+            </div>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+    <!-- 🔹 Total -->
+    <div class="text-end mt-4">
+        <h4>Total: ₹{{ order.total_amount }}</h4>
+    </div>
+
+</div>
+
+{% endblock %}

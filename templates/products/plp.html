@@ -20,11 +20,11 @@
                     {% if product.main_image %}
                         <img src="{{ product.main_image.url }}"
                              class="card-img-top"
-                             style="height: 300px; object-fit: contain; background: #fff;">
+                             style="height: 250px; object-fit: contain; background: #fff;">
                     {% else %}
                         <img src="{% static 'images/no-image.png' %}"
                              class="card-img-top"
-                             style="height: 150px; object-fit: cover;">
+                             style="height: 250px; object-fit: contain; background: #fff;">
                     {% endif %}
 
                     <!-- 🔹 Product Info -->
