@@ -16,10 +16,11 @@
                 
                 <div class="card h-100 shadow-sm">
 
-                    <!-- 🔹 Small Image -->
+                    <!-- 🔹 Product Image -->
                     {% if product.main_image %}
                         <img src="{{ product.main_image.url }}"
-                             class="card-img-top" style="height: 300px; object-fit: contain; background: #fff;">                    
+                             class="card-img-top"
+                             style="height: 300px; object-fit: contain; background: #fff;">
                     {% else %}
                         <img src="{% static 'images/no-image.png' %}"
                              class="card-img-top"
@@ -33,7 +34,6 @@
                             {{ product.name|truncatechars:35 }}
                         </h6>
 
-                        <!-- 🔥 Short Description -->
                         <p class="text-muted small mb-1">
                             {{ product.description|truncatechars:50 }}
                         </p>
@@ -50,7 +50,26 @@
 
         </div>
 
+        {% empty %}
+            <p>No products found</p>
         {% endfor %}
+    </div>
+
+    <!-- 🔥 Pagination (Loop ke bahar) -->
+    <div class="d-flex justify-content-center mt-4">
+
+        {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}" class="btn btn-outline-primary me-2">Prev</a>
+        {% endif %}
+
+        <span class="align-self-center mx-2">
+            Page {{ products.number }} of {{ products.paginator.num_pages }}
+        </span>
+
+        {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}" class="btn btn-outline-primary ms-2">Next</a>
+        {% endif %}
+
     </div>
 
 </div>

@@ -17,12 +17,18 @@ from django.views import View
 from django.shortcuts import render
 from .models import Product
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 
 
 class ProductListView(View):
 
     def get(self, request):
-        products = Product.objects.all()
+        product_list = Product.objects.all()
+
+        paginator = Paginator(product_list, 8)
+        page_number = request.GET.get('page')
+        products = paginator.get_page(page_number)
+
         return render(request, "products/plp.html", {"products": products})
     
 
