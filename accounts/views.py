@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
+
+# 🔐 Signup
 class SignupView(View):
 
     def get(self, request):
@@ -21,6 +23,8 @@ class SignupView(View):
         messages.success(request, "Account created successfully!")
         return redirect('login')
 
+
+# 🔐 Login
 class LoginView(View):
 
     def get(self, request):
@@ -38,11 +42,24 @@ class LoginView(View):
 
         login(request, user)
         messages.success(request, "Login successful!")
-        return redirect('home')
 
+        # 🔥 next redirect (important)
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+
+        return redirect('product-list')   # ❌ home → ✔ product-list
+
+
+# 🚪 Logout
 class LogoutView(View):
 
-    def get(self, request):
+    def post(self, request):
+        logout(request)
+        messages.success(request, "Logged out successfully!")
+        return redirect('login')
+
+    def get(self, request):  # fallback
         logout(request)
         messages.success(request, "Logged out successfully!")
         return redirect('login')
