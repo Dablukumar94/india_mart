@@ -6,7 +6,7 @@
       🛍 MyStore
     </a>
 
-    <!-- 🔹 Toggle -->
+    <!-- 🔹 Hamburger -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
@@ -15,12 +15,12 @@
     <!-- 🔹 Menu -->
     <div class="collapse navbar-collapse" id="navbarNav">
 
-      <!-- 🔹 Left Menu -->
+      <!-- 🔹 Left -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/' %}active{% endif %}"
              href="{% url 'product-list' %}">
-             Home
+            Home
           </a>
         </li>
       </ul>
@@ -32,19 +32,16 @@
                name="q"
                placeholder="Search products..."
                value="{{ request.GET.q }}">
-        <button class="btn btn-outline-light" type="submit">
-          Search
-        </button>
+        <button class="btn btn-outline-light">Search</button>
       </form>
 
-      <!-- 🔹 Right Menu -->
+      <!-- 🔹 Right -->
       <ul class="navbar-nav align-items-center">
 
         <!-- 🛒 Cart -->
         <li class="nav-item">
-          <a class="nav-link position-relative {% if 'cart' in request.path %}active{% endif %}"
-             href="{% url 'cart' %}">
-            🛒 Cart
+          <a class="nav-link position-relative" href="{% url 'cart' %}">
+            🛒
             {% if cart_count > 0 %}
               <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                 {{ cart_count }}
@@ -55,48 +52,60 @@
 
         {% if request.user.is_authenticated %}
 
-          <!-- 📦 Orders -->
-          <li class="nav-item">
-            <a class="nav-link {% if 'orders' in request.path %}active{% endif %}"
-               href="{% url 'order-history' %}">
-              📦 Orders
-            </a>
-          </li>
+        <!-- 👤 Profile Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center"
+             href="#" role="button" data-bs-toggle="dropdown">
+             👤{{ request.user.first_name }}
+          </a>
 
-          <!-- 👤 Username -->
-          <li class="nav-item">
-            <span class="nav-link text-warning fw-semibold">
-              👋 {{ request.user.username }}
-            </span>
-          </li>
+          <ul class="dropdown-menu dropdown-menu-end">
 
-          <!-- 🚪 Logout (POST) -->
-          <li class="nav-item">
-            <form method="POST" action="{% url 'logout' %}" class="ms-2">
-              {% csrf_token %}
-              <button class="btn btn-danger btn-sm">
-                Logout
-              </button>
-            </form>
-          </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'order-history' %}">
+                📦 My Orders
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+              <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button class="dropdown-item text-danger">
+                  🚪 Logout
+                </button>
+              </form>
+            </li>
+
+          </ul>
+        </li>
 
         {% else %}
 
-          <!-- 🔐 Login -->
-          <li class="nav-item">
-            <a class="nav-link {% if 'login' in request.path %}active{% endif %}"
-               href="{% url 'login' %}">
-              Login
-            </a>
-          </li>
+        <!-- 🔐 Guest Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+             data-bs-toggle="dropdown">
+             ☰ Menu
+          </a>
 
-          <!-- 📝 Signup -->
-          <li class="nav-item">
-            <a class="btn btn-success btn-sm ms-2"
-               href="{% url 'signup' %}">
-              Signup
-            </a>
-          </li>
+          <ul class="dropdown-menu dropdown-menu-end">
+
+            <li>
+              <a class="dropdown-item" href="{% url 'login' %}">
+                Login
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{% url 'signup' %}">
+                Signup
+              </a>
+            </li>
+
+          </ul>
+        </li>
 
         {% endif %}
 

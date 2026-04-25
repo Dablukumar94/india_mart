@@ -25,18 +25,31 @@ class ProductImage(models.Model):
         return self.product.name
 
 
+# models.py
 
 class Order(models.Model):
+    STATUS_CHOICES = (
+    ('PLACED', 'Placed'),
+    ('SHIPPED', 'Shipped'),
+    ('DELIVERED', 'Delivered'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
-    full_name = models.CharField(max_length=200)
+    full_name = models.CharField(max_length=70)
+    mobile = models.CharField(max_length=10)
+
     address = models.TextField()
-    city = models.CharField(max_length=100)
+    district = models.CharField(max_length=40)
+    state = models.CharField(max_length=40)
+    pincode = models.CharField(max_length=6)
 
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PLACED')
 
     def __str__(self):
         return str(self.id)
@@ -48,3 +61,6 @@ class OrderItem(models.Model):
 
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.product.name} ({self.quantity})"
