@@ -11,16 +11,18 @@
     <div class="card p-3 mb-4 shadow-sm">
         <p><strong>Order ID:</strong> {{ order.id }}</p>
         <p><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</p>
+
+        <!-- ✅ UPDATED STATUS -->
         <p><strong>Status:</strong> 
-            {% if order.status == "pending" %}
-                <span class="badge bg-warning text-dark">Pending</span>
-            {% elif order.status == "processing" %}
-                <span class="badge bg-info text-dark">Processing</span>
-            {% elif order.status == "shipped" %}
-                <span class="badge bg-primary">Shipped</span>
-            {% elif order.status == "delivered" %}
-                <span class="badge bg-success">Delivered</span>
-            {% endif %}
+            <span class="badge
+                {% if order.status == 'PLACED' %} bg-warning text-dark
+                {% elif order.status == 'SHIPPED' %} bg-primary
+                {% elif order.status == 'DELIVERED' %} bg-success
+                {% else %} bg-secondary
+                {% endif %}
+            ">
+                {{ order.get_status_display }}
+            </span>
         </p>
     </div>
 

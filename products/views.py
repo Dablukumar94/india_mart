@@ -139,16 +139,24 @@ class CheckoutView(LoginRequiredMixin, View):
             return redirect('cart')
 
         full_name = request.POST.get('full_name')
+        mobile = request.POST.get('mobile')
         address = request.POST.get('address')
-        city = request.POST.get('city')
+        district = request.POST.get('district')
+        state = request.POST.get('state')
+        pincode = request.POST.get('pincode')
 
         total = 0
+
         order = Order.objects.create(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             full_name=full_name,
+            mobile=mobile,
             address=address,
-            city=city,
-            total_amount=0
+            district=district,
+            state=state,
+            pincode=pincode,
+            total_amount=0,
+            status='PLACED'
         )
 
         for product_id, quantity in cart.items():
@@ -167,11 +175,11 @@ class CheckoutView(LoginRequiredMixin, View):
         order.total_amount = total
         order.save()
 
-        # 🔥 clear cart
+        # clear cart
         request.session['cart'] = {}
 
         return redirect('order-success')
-    
+
 
 class OrderSuccessView(View):
     def get(self, request):

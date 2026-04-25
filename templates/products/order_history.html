@@ -35,16 +35,17 @@
                         ₹{{ order.total_amount }}
                     </td>
 
+                    <!-- ✅ STATUS BADGE -->
                     <td>
-                        {% if order.status == "pending" %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        {% elif order.status == "processing" %}
-                            <span class="badge bg-info text-dark">Processing</span>
-                        {% elif order.status == "shipped" %}
-                            <span class="badge bg-primary">Shipped</span>
-                        {% elif order.status == "delivered" %}
-                            <span class="badge bg-success">Delivered</span>
-                        {% endif %}
+                        <span class="badge
+                            {% if order.status == 'PLACED' %} bg-warning text-dark
+                            {% elif order.status == 'SHIPPED' %} bg-primary
+                            {% elif order.status == 'DELIVERED' %} bg-success
+                            {% else %} bg-secondary
+                            {% endif %}
+                        ">
+                            {{ order.get_status_display }}
+                        </span>
                     </td>
 
                     <td>

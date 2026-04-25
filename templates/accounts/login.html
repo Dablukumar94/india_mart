@@ -1,13 +1,14 @@
 {% extends "base/base.html" %}
 
 {% block content %}
-<!-- 🔔 Alert (top me) -->
-{% include "base/alert.html" %}
 
 <div class="d-flex justify-content-center align-items-center vh-100">
     
     <div class="card p-4 shadow" style="width: 350px;">
         <h3 class="text-center mb-3">Login</h3>
+
+        <!-- 🔔 Alert (ab card ke andar) -->
+        {% include "base/alert.html" %}
 
         <form method="POST">
             {% csrf_token %}

@@ -12,14 +12,31 @@ class SignupView(View):
         return render(request, "accounts/signup.html")
 
     def post(self, request):
-        username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists!")
+        # 🔥 Password match
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match")
             return redirect('signup')
 
-        User.objects.create_user(username=username, password=password)
+        # 🔥 Email already exists
+        if User.objects.filter(username=email).exists():
+            messages.error(request, "Email already registered")
+            return redirect('signup')
+
+        # 🔥 Create user
+        User.objects.create_user(
+            username=email,   # email as username
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
         messages.success(request, "Account created successfully!")
         return redirect('login')
 
@@ -41,15 +58,14 @@ class LoginView(View):
             return redirect('login')
 
         login(request, user)
-        messages.success(request, "Login successful!")
+        # messages.success(request, "Login successful!")
 
         # 🔥 next redirect (important)
         next_url = request.GET.get('next')
         if next_url:
             return redirect(next_url)
 
-        return redirect('product-list')   # ❌ home → ✔ product-list
-
+        return redirect('product-list')
 
 # 🚪 Logout
 class LogoutView(View):
@@ -57,9 +73,11 @@ class LogoutView(View):
     def post(self, request):
         logout(request)
         messages.success(request, "Logged out successfully!")
-        return redirect('login')
+        return redirect('product-list')
+
 
     def get(self, request):  # fallback
         logout(request)
         messages.success(request, "Logged out successfully!")
         return redirect('login')
+        

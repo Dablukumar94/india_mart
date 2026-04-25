@@ -2,28 +2,50 @@
 
 {% block content %}
 
-<div class="container mt-5">
+<div class="container mt-5" style="max-width: 600px;">
 
-    <h2>Checkout</h2>
+    <h3 class="mb-4 text-center">Checkout</h3>
 
     <form method="POST">
         {% csrf_token %}
 
+        <!-- 🔹 Full Name -->
         <div class="mb-3">
-            <label>Full Name</label>
+            <label class="form-label">Full Name</label>
             <input type="text" name="full_name" class="form-control" required>
         </div>
 
+        <!-- 🔹 Mobile -->
         <div class="mb-3">
-            <label>Address</label>
-            <textarea name="address" class="form-control" required></textarea>
+            <label class="form-label">Mobile Number</label>
+            <input type="tel" name="mobile" class="form-control" required>
         </div>
 
+        <!-- 🔹 Address -->
         <div class="mb-3">
-            <label>City</label>
-            <input type="text" name="city" class="form-control" required>
+            <label class="form-label">Address</label>
+            <textarea name="address" class="form-control" rows="3" required></textarea>
         </div>
 
+        <!-- 🔹 District -->
+        <div class="mb-3">
+            <label class="form-label">District</label>
+            <input type="text" name="district" class="form-control" required>
+        </div>
+
+        <!-- 🔹 State -->
+        <div class="mb-3">
+            <label class="form-label">State</label>
+            <input type="text" name="state" class="form-control" required>
+        </div>
+
+        <!-- 🔹 Pincode -->
+        <div class="mb-3">
+            <label class="form-label">Pincode</label>
+            <input type="text" name="pincode" class="form-control" required>
+        </div>
+
+        <!-- 🔥 Place Order -->
         <button class="btn btn-success w-100">
             Place Order
         </button>
