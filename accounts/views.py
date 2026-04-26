@@ -94,7 +94,7 @@ class AddressView(LoginRequiredMixin, View):
             is_default=True
         ).first()
 
-        return render(request, "products/edit_address.html", {
+        return render(request, "accounts/edit_address.html", {
             "address": address
         })
 

@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<div class="container text-center mt-5">
+
+    <div class="card shadow p-5">
+
+        <h2 class="text-success">🎉 Order Placed Successfully!</h2>
+
+        <p><strong>Order ID:</strong> {{ order.id }}</p>
+        <p><strong>Total:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Status:</strong> {{ order.status }}</p>
+
+        <hr>
+
+        <h5>Items:</h5>
+        {% for item in order.items.all %}
+            <p>{{ item.product.name }} x {{ item.quantity }}</p>
+        {% endfor %}
+
+        <a href="{% url 'product-list' %}" class="btn btn-primary mt-3">
+            Continue Shopping
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

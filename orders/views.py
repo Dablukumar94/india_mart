@@ -20,7 +20,7 @@ class CheckoutView(LoginRequiredMixin, View):
 
         return render(
             request,
-            'products/checkout.html',
+            'orders/checkout.html',
             {
                 'address': address,
                 'cart_items': items,
@@ -59,12 +59,16 @@ class CheckoutView(LoginRequiredMixin, View):
         order.total_amount = total
         order.save(update_fields=['total_amount'])
         cart.items.all().delete()
-        return redirect('order-success')
+        return redirect('payment-detail', order_id=order.id)
 
 
 class OrderSuccessView(View):
-    def get(self, request):
-        return render(request, 'products/success.html')
+    def get(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+
+        return render(request, 'orders/success.html', {
+            'order': order
+        })
 
 
 class OrderHistoryView(LoginRequiredMixin, View):
@@ -72,7 +76,7 @@ class OrderHistoryView(LoginRequiredMixin, View):
 
     def get(self, request):
         orders = Order.objects.filter(user=request.user).order_by('-created_at')
-        return render(request, 'products/order_history.html', {'orders': orders})
+        return render(request, 'orders/order_history.html', {'orders': orders})
 
 
 class OrderDetailView(LoginRequiredMixin, View):
@@ -80,7 +84,7 @@ class OrderDetailView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         order = get_object_or_404(Order, id=pk, user=request.user)
-        return render(request, 'products/order_detail.html', {'order': order})
+        return render(request, 'orders/order_detail.html', {'order': order})
 
 
 class BuyNowView(LoginRequiredMixin, View):

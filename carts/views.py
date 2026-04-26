@@ -35,7 +35,7 @@ class CartView(LoginRequiredMixin, View):
 
         return render(
             request,
-            'products/cart.html',
+            'carts/cart.html',
             {
                 'products': [item.product for item in items],
                 'cart_items': items,
