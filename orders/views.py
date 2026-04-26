@@ -96,3 +96,14 @@ class BuyNowView(LoginRequiredMixin, View):
         product = get_object_or_404(Product, id=pk)
         CartItem.objects.create(cart=cart, product=product, quantity=1)
         return redirect('checkout')
+
+class CancelOrderView(View):
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+
+        # ❗ Only allow cancel if not delivered
+        if order.status in ['PLACED', 'SHIPPED']:
+            order.status = 'CANCELLED'
+            order.save()
+
+        return redirect('order-history')

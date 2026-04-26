@@ -35,12 +35,13 @@
                         ₹{{ order.total_amount }}
                     </td>
 
-                    <!-- ✅ STATUS BADGE -->
+                    <!-- STATUS -->
                     <td>
                         <span class="badge
                             {% if order.status == 'PLACED' %} bg-warning text-dark
                             {% elif order.status == 'SHIPPED' %} bg-primary
                             {% elif order.status == 'DELIVERED' %} bg-success
+                            {% elif order.status == 'CANCELLED' %} bg-danger
                             {% else %} bg-secondary
                             {% endif %}
                         ">
@@ -48,11 +49,24 @@
                         </span>
                     </td>
 
+                    <!-- ACTION -->
                     <td>
                         <a href="{% url 'order-detail' order.id %}" 
                            class="btn btn-sm btn-outline-primary">
                            View
                         </a>
+
+                        <!-- ✅ CANCEL BUTTON -->
+                        {% if order.status != 'DELIVERED' and order.status != 'CANCELLED' %}
+                        <form method="POST" 
+                              action="{% url 'cancel-order' order.id %}" 
+                              style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Cancel
+                            </button>
+                        </form>
+                        {% endif %}
                     </td>
 
                 </tr>

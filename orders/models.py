@@ -8,6 +8,7 @@ class Order(models.Model):
         ('PLACED', 'Placed'),
         ('SHIPPED', 'Shipped'),
         ('DELIVERED', 'Delivered'),
+        ('CANCELLED', 'Cancelled'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
