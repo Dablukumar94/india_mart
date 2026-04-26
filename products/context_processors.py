@@ -1,8 +1,6 @@
 def cart_count(request):
-    cart = request.session.get('cart', {})
-    
-    total_items = sum(cart.values())  # total quantity
+    total_items = 0
+    if request.user.is_authenticated and hasattr(request.user, 'cart'):
+        total_items = sum(item.quantity for item in request.user.cart.items.all())
 
-    return {
-        'cart_count': total_items
-    }
+    return {'cart_count': total_items}

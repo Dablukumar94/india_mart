@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from .models import Address
 
 
 # 🔐 Signup
@@ -81,3 +84,33 @@ class LogoutView(View):
         messages.success(request, "Logged out successfully!")
         return redirect('login')
         
+
+class AddressView(LoginRequiredMixin, View):
+    login_url = 'login'
+
+    def get(self, request):
+        address = Address.objects.filter(
+            user=request.user,
+            is_default=True
+        ).first()
+
+        return render(request, "products/edit_address.html", {
+            "address": address
+        })
+
+    def post(self, request):
+
+        Address.objects.filter(user=request.user).update(is_default=False)
+
+        Address.objects.create(
+            user=request.user,
+            full_name=request.POST.get('full_name'),
+            mobile=request.POST.get('mobile'),
+            address=request.POST.get('address'),
+            district=request.POST.get('district'),
+            state=request.POST.get('state'),
+            pincode=request.POST.get('pincode'),
+            is_default=True
+        )
+
+        return redirect('checkout')
