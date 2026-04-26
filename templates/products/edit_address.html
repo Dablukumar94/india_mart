@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<div class="container mt-5" style="max-width:600px;">
+
+    <h3 class="mb-4 text-center">Edit Address</h3>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Full Name -->
+        <input type="text"
+               name="full_name"
+               class="form-control mb-3"
+               value="{{ last_order.full_name|default:'' }}"
+               placeholder="Full Name"
+               required>
+
+        <!-- Mobile -->
+        <input type="tel"
+               name="mobile"
+               class="form-control mb-3"
+               value="{{ last_order.mobile|default:'' }}"
+               placeholder="Mobile Number"
+               required>
+
+        <!-- Address -->
+        <textarea name="address"
+                  class="form-control mb-3"
+                  rows="3"
+                  placeholder="Full Address"
+                  required>{{ last_order.address|default:'' }}</textarea>
+
+        <!-- District -->
+        <input type="text"
+               name="district"
+               class="form-control mb-3"
+               value="{{ last_order.district|default:'' }}"
+               placeholder="District"
+               required>
+
+        <!-- State -->
+        <input type="text"
+               name="state"
+               class="form-control mb-3"
+               value="{{ last_order.state|default:'' }}"
+               placeholder="State"
+               required>
+
+        <!-- Pincode -->
+        <input type="text"
+               name="pincode"
+               class="form-control mb-4"
+               value="{{ last_order.pincode|default:'' }}"
+               placeholder="Pincode"
+               required>
+
+        <!-- Buttons -->
+        <div class="d-flex gap-2">
+
+            <!-- Cancel -->
+            <a href="{% url 'checkout' %}"
+               class="btn btn-outline-secondary w-50">
+                Cancel
+            </a>
+
+            <!-- Save -->
+            <button type="submit"
+                    class="btn btn-primary w-50">
+                Save & Back
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
