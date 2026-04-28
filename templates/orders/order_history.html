@@ -15,7 +15,7 @@
                 <tr>
                     <th>#</th>
                     <th>Order ID</th>
-                    <th>Date</th>
+                    <th>Dates</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -29,44 +29,96 @@
 
                     <td>{{ order.id|truncatechars:10 }}</td>
 
-                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <!-- 📅 DATE SECTION -->
+                    <td>
+                        <strong>Order:</strong> {{ order.created_at|date:"d M Y" }}
 
+                        {% if order.delivered_at %}
+                        <br>
+                        <small class="text-success">
+                            Delivered: {{ order.delivered_at|date:"d M Y" }}
+                        </small>
+                        {% endif %}
+
+                        {% if order.pickup_date %}
+                        <br>
+                        <small class="text-muted">
+                            Pickup: {{ order.pickup_date|date:"d M Y" }}
+                        </small>
+                        {% endif %}
+                    </td>
+
+                    <!-- 💰 TOTAL -->
                     <td class="text-success fw-bold">
                         ₹{{ order.total_amount }}
                     </td>
 
-                    <!-- STATUS -->
+                    <!-- 🏷 STATUS -->
                     <td>
                         <span class="badge
                             {% if order.status == 'PLACED' %} bg-warning text-dark
                             {% elif order.status == 'SHIPPED' %} bg-primary
                             {% elif order.status == 'DELIVERED' %} bg-success
                             {% elif order.status == 'CANCELLED' %} bg-danger
-                            {% else %} bg-secondary
+                            {% elif order.status == 'RETURN_REQUESTED' %} bg-warning text-dark
+                            {% elif order.status == 'REPLACEMENT_REQUESTED' %} bg-info
+                            {% elif order.status == 'PICKUP_SCHEDULED' %} bg-secondary
+                            {% elif order.status == 'PICKED_UP' %} bg-dark
+                            {% else %} bg-light text-dark
                             {% endif %}
                         ">
                             {{ order.get_status_display }}
                         </span>
                     </td>
 
-                    <!-- ACTION -->
+                    <!-- ⚙️ ACTIONS -->
                     <td>
+
+                        <!-- View -->
                         <a href="{% url 'order-detail' order.id %}" 
                            class="btn btn-sm btn-outline-primary">
                            View
                         </a>
 
-                        <!-- ✅ CANCEL BUTTON -->
+                        <!-- Cancel -->
                         {% if order.status != 'DELIVERED' and order.status != 'CANCELLED' %}
                         <form method="POST" 
                               action="{% url 'cancel-order' order.id %}" 
                               style="display:inline;">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger">
+                            <button type="submit" 
+                                    class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Cancel this order?')">
                                 Cancel
                             </button>
                         </form>
                         {% endif %}
+
+                        <!-- Return / Replace -->
+                        {% if order.status == 'DELIVERED' %}
+
+                        <form method="POST" 
+                              action="{% url 'return-order' order.id %}" 
+                              style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="return">
+                            <button class="btn btn-sm btn-warning">
+                                Return
+                            </button>
+                        </form>
+
+                        <form method="POST" 
+                              action="{% url 'return-order' order.id %}" 
+                              style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="replace">
+                            <button class="btn btn-sm btn-info text-white">
+                                Replace
+                            </button>
+                        </form>
+
+                        {% endif %}
+
                     </td>
 
                 </tr>

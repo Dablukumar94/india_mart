@@ -107,3 +107,19 @@ class CancelOrderView(View):
             order.save()
 
         return redirect('order-history')
+
+class ReturnOrderView(View):
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+
+        action = request.POST.get("action")
+
+        if order.status == "DELIVERED":
+            if action == "return":
+                order.status = "RETURN_REQUESTED"
+            elif action == "replace":
+                order.status = "REPLACEMENT_REQUESTED"
+
+            order.save()
+
+        return redirect('order-history')

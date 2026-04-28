@@ -9,6 +9,10 @@ class Order(models.Model):
         ('SHIPPED', 'Shipped'),
         ('DELIVERED', 'Delivered'),
         ('CANCELLED', 'Cancelled'),
+        ('RETURN_REQUESTED', 'Return Requested'),
+        ('REPLACEMENT_REQUESTED', 'Replacement Requested'),
+        ('PICKUP_SCHEDULED', 'Pickup Scheduled'),
+        ('PICKED_UP', 'Picked Up'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -21,7 +25,9 @@ class Order(models.Model):
         related_name='orders',
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PLACED')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PLACED')
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    pickup_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
