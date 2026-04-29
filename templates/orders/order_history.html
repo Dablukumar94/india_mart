@@ -4,128 +4,143 @@
 
 <div class="container mt-5">
 
-    <h2 class="mb-4">📦 My Orders</h2>
+    <h2 class="mb-4 fw-bold">📦 My Orders</h2>
 
     {% if orders %}
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
 
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Order ID</th>
-                    <th>Dates</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+            <div class="table-responsive">
 
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
+                <table class="table align-middle mb-0">
 
-                    <td>{{ order.id|truncatechars:10 }}</td>
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Order</th>
+                            <th>Dates</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
 
-                    <!-- 📅 DATE SECTION -->
-                    <td>
-                        <strong>Order:</strong> {{ order.created_at|date:"d M Y" }}
+                    <tbody>
 
-                        {% if order.delivered_at %}
-                        <br>
-                        <small class="text-success">
-                            Delivered: {{ order.delivered_at|date:"d M Y" }}
-                        </small>
-                        {% endif %}
+                        {% for order in orders %}
+                        <tr class="order-row">
 
-                        {% if order.pickup_date %}
-                        <br>
-                        <small class="text-muted">
-                            Pickup: {{ order.pickup_date|date:"d M Y" }}
-                        </small>
-                        {% endif %}
-                    </td>
+                            <!-- Index -->
+                            <td>{{ forloop.counter }}</td>
 
-                    <!-- 💰 TOTAL -->
-                    <td class="text-success fw-bold">
-                        ₹{{ order.total_amount }}
-                    </td>
+                            <!-- Order Info -->
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ order.id|truncatechars:12 }}
+                                </div>
+                                <small class="text-muted">
+                                    Items: {{ order.items.count }}
+                                </small>
+                            </td>
 
-                    <!-- 🏷 STATUS -->
-                    <td>
-                        <span class="badge
-                            {% if order.status == 'PLACED' %} bg-warning text-dark
-                            {% elif order.status == 'SHIPPED' %} bg-primary
-                            {% elif order.status == 'DELIVERED' %} bg-success
-                            {% elif order.status == 'CANCELLED' %} bg-danger
-                            {% elif order.status == 'RETURN_REQUESTED' %} bg-warning text-dark
-                            {% elif order.status == 'REPLACEMENT_REQUESTED' %} bg-info
-                            {% elif order.status == 'PICKUP_SCHEDULED' %} bg-secondary
-                            {% elif order.status == 'PICKED_UP' %} bg-dark
-                            {% else %} bg-light text-dark
-                            {% endif %}
-                        ">
-                            {{ order.get_status_display }}
-                        </span>
-                    </td>
+                            <!-- Dates -->
+                            <td>
+                                <div class="small">
+                                    <div><strong>Order:</strong> {{ order.created_at|date:"d M Y" }}</div>
 
-                    <!-- ⚙️ ACTIONS -->
-                    <td>
+                                    {% if order.delivered_at %}
+                                    <div class="text-success">
+                                        Delivered: {{ order.delivered_at|date:"d M Y" }}
+                                    </div>
+                                    {% endif %}
 
-                        <!-- View -->
-                        <a href="{% url 'order-detail' order.id %}" 
-                           class="btn btn-sm btn-outline-primary">
-                           View
-                        </a>
+                                    {% if order.pickup_date %}
+                                    <div class="text-muted">
+                                        Pickup: {{ order.pickup_date|date:"d M Y" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
 
-                        <!-- Cancel -->
-                        {% if order.status != 'DELIVERED' and order.status != 'CANCELLED' %}
-                        <form method="POST" 
-                              action="{% url 'cancel-order' order.id %}" 
-                              style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" 
-                                    class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Cancel this order?')">
-                                Cancel
-                            </button>
-                        </form>
-                        {% endif %}
+                            <!-- Total -->
+                            <td class="fw-bold text-success">
+                                ₹{{ order.total_amount }}
+                            </td>
 
-                        <!-- Return / Replace -->
-                        {% if order.status == 'DELIVERED' %}
+                            <!-- Status -->
+                            <td>
+                                <span class="badge px-3 py-2
+                                    {% if order.status == 'PLACED' %} bg-warning text-dark
+                                    {% elif order.status == 'SHIPPED' %} bg-primary
+                                    {% elif order.status == 'DELIVERED' %} bg-success
+                                    {% elif order.status == 'CANCELLED' %} bg-danger
+                                    {% elif order.status == 'RETURN_REQUESTED' %} bg-warning text-dark
+                                    {% elif order.status == 'REPLACEMENT_REQUESTED' %} bg-info
+                                    {% elif order.status == 'PICKUP_SCHEDULED' %} bg-secondary
+                                    {% elif order.status == 'PICKED_UP' %} bg-dark
+                                    {% else %} bg-light text-dark
+                                    {% endif %}
+                                ">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
 
-                        <form method="POST" 
-                              action="{% url 'return-order' order.id %}" 
-                              style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="return">
-                            <button class="btn btn-sm btn-warning">
-                                Return
-                            </button>
-                        </form>
+                            <!-- Actions -->
+                            <td class="text-end">
 
-                        <form method="POST" 
-                              action="{% url 'return-order' order.id %}" 
-                              style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="replace">
-                            <button class="btn btn-sm btn-info text-white">
-                                Replace
-                            </button>
-                        </form>
+                                <!-- View -->
+                                <a href="{% url 'order-detail' order.id %}" 
+                                   class="btn btn-sm btn-primary me-1">
+                                   View
+                                </a>
 
-                        {% endif %}
+                                <!-- ✅ Cancel (ONLY PLACED / SHIPPED) -->
+                                {% if order.status == 'PLACED' or order.status == 'SHIPPED' %}
+                                <form method="POST" action="{% url 'cancel-order' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Cancel this order?')">
+                                        Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
 
-                    </td>
+                                <!-- ✅ Return / Replace (ONLY DELIVERED) -->
+                                {% if order.status == 'DELIVERED' %}
+                                
+                                <!-- Return -->
+                                <form method="POST" action="{% url 'return-order' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="return">
+                                    <button class="btn btn-sm btn-outline-warning">
+                                        Return
+                                    </button>
+                                </form>
 
-                </tr>
-                {% endfor %}
-            </tbody>
+                                <!-- Replace -->
+                                <form method="POST" action="{% url 'return-order' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="replace">
+                                    <button class="btn btn-sm btn-outline-info">
+                                        Replace
+                                    </button>
+                                </form>
 
-        </table>
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
     </div>
 
     {% else %}
@@ -135,5 +150,23 @@
     {% endif %}
 
 </div>
+
+<!-- ✨ UI Enhancements -->
+<style>
+.order-row:hover {
+    background-color: #f8f9fa;
+    transition: 0.2s;
+}
+
+.table th {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge {
+    font-size: 12px;
+}
+</style>
 
 {% endblock %}

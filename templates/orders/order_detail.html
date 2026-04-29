@@ -10,20 +10,73 @@
     <!-- 🔹 Order Info -->
     <div class="card p-3 mb-4 shadow-sm">
         <p><strong>Order ID:</strong> {{ order.id }}</p>
+
         <p><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</p>
 
-        <!-- ✅ UPDATED STATUS -->
+        {% if order.delivered_at %}
+        <p><strong>Delivered:</strong> {{ order.delivered_at|date:"d M Y" }}</p>
+        {% endif %}
+
+        {% if order.pickup_date %}
+        <p><strong>Pickup:</strong> {{ order.pickup_date|date:"d M Y" }}</p>
+        {% endif %}
+
+        <!-- ✅ STATUS -->
         <p><strong>Status:</strong> 
             <span class="badge
                 {% if order.status == 'PLACED' %} bg-warning text-dark
                 {% elif order.status == 'SHIPPED' %} bg-primary
                 {% elif order.status == 'DELIVERED' %} bg-success
-                {% else %} bg-secondary
+                {% elif order.status == 'CANCELLED' %} bg-danger
+                {% elif order.status == 'RETURN_REQUESTED' %} bg-warning text-dark
+                {% elif order.status == 'REPLACEMENT_REQUESTED' %} bg-info
+                {% elif order.status == 'PICKUP_SCHEDULED' %} bg-secondary
+                {% elif order.status == 'PICKED_UP' %} bg-dark
+                {% else %} bg-light text-dark
                 {% endif %}
             ">
                 {{ order.get_status_display }}
             </span>
         </p>
+    </div>
+
+    <!-- 🔥 TIMELINE -->
+    <div class="card p-4 mb-4 shadow-sm">
+
+        <h5 class="mb-4">🚚 Order Tracking</h5>
+
+        <div class="timeline d-flex justify-content-between position-relative">
+
+            {% for step, label, icon in steps %}
+            <div class="text-center flex-fill position-relative">
+
+                <!-- Circle -->
+                <div class="circle mx-auto
+                    {% if forloop.counter0 < current_index %}
+                        completed
+                    {% elif forloop.counter0 == current_index %}
+                        active
+                    {% endif %}
+                ">
+                    {{ icon }}
+                </div>
+
+                <!-- Label -->
+                <small class="d-block mt-2
+                    {% if forloop.counter0 <= current_index %}
+                        fw-bold text-dark
+                    {% else %}
+                        text-muted
+                    {% endif %}
+                ">
+                    {{ label }}
+                </small>
+
+            </div>
+            {% endfor %}
+
+        </div>
+
     </div>
 
     <!-- 🔹 Items -->
@@ -32,7 +85,7 @@
 
         <div class="row align-items-center">
 
-            <!-- 🔸 Image -->
+            <!-- Image -->
             <div class="col-md-2">
                 {% if item.product.main_image %}
                     <img src="{{ item.product.main_image.url }}" 
@@ -43,7 +96,7 @@
                 {% endif %}
             </div>
 
-            <!-- 🔸 Info -->
+            <!-- Info -->
             <div class="col-md-6">
                 <h6>{{ item.product.name }}</h6>
                 <p class="text-muted small mb-1">
@@ -51,12 +104,12 @@
                 </p>
             </div>
 
-            <!-- 🔸 Qty -->
+            <!-- Qty -->
             <div class="col-md-2 text-center">
                 <p>Qty: {{ item.quantity }}</p>
             </div>
 
-            <!-- 🔸 Price -->
+            <!-- Price -->
             <div class="col-md-2 text-end">
                 <p class="fw-bold">₹{{ item.price }}</p>
             </div>
@@ -72,5 +125,46 @@
     </div>
 
 </div>
+
+<!-- 🎨 TIMELINE CSS -->
+<style>
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    top: 25px;
+    left: 5%;
+    width: 90%;
+    height: 4px;
+    background-color: #ddd;
+    z-index: 0;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 1;
+}
+
+/* Completed */
+.circle.completed {
+    background: #28a745;
+    color: white;
+}
+
+/* Active */
+.circle.active {
+    background: #0d6efd;
+    color: white;
+    transform: scale(1.2);
+}
+
+</style>
 
 {% endblock %}

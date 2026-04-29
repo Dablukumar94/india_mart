@@ -1,0 +1,134 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 fw-bold">📊 Admin Dashboard</h2>
+
+    <!-- 🔥 STATS -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card text-center p-3 shadow-sm">
+                <h6>Total Orders</h6>
+                <h2>{{ total_orders }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center p-3 shadow-sm">
+                <h6>Total Revenue</h6>
+                <h2 class="text-success">₹{{ total_revenue }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center p-3 shadow-sm">
+                <h6>Pending</h6>
+                <h2 class="text-warning">{{ pending_orders }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center p-3 shadow-sm">
+                <h6>Delivered</h6>
+                <h2 class="text-primary">{{ delivered_orders }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 🔽 FILTER -->
+    <div class="d-flex justify-content-between mb-3">
+        <h5>Analytics (Last {{ selected_range }} Days)</h5>
+
+        <form method="GET">
+            <select name="range" onchange="this.form.submit()" class="form-select" style="width:150px;">
+                <option value="7" {% if selected_range == 7 %}selected{% endif %}>7 Days</option>
+                <option value="30" {% if selected_range == 30 %}selected{% endif %}>30 Days</option>
+                <option value="90" {% if selected_range == 90 %}selected{% endif %}>90 Days</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="row">
+
+        <!-- 📈 Orders -->
+        <div class="col-md-8">
+            <div class="card p-3 shadow-sm mb-4">
+                <h6>Orders</h6>
+                <canvas id="orderChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 🍕 Pie -->
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm mb-4">
+                <h6>Status Distribution</h6>
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 💰 Revenue -->
+    <div class="card p-3 shadow-sm">
+        <h6>Revenue</h6>
+        <canvas id="revenueChart"></canvas>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    // ✅ Direct JSON (NO JSON.parse)
+    const labels = {{ labels|safe }};
+    const orderData = {{ order_data|safe }};
+    const revenueData = {{ revenue_data|safe }};
+    const pieLabels = {{ pie_labels|safe }};
+    const pieData = {{ pie_counts|safe }};
+
+    // Orders Chart
+    new Chart(document.getElementById('orderChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Orders',
+                data: orderData,
+                fill: true,
+                tension: 0.4
+            }]
+        }
+    });
+
+    // Revenue Chart
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue',
+                data: revenueData
+            }]
+        }
+    });
+
+    // Pie Chart
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData
+            }]
+        }
+    });
+
+</script>
+
+{% endblock %}

@@ -84,7 +84,50 @@ class OrderDetailView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         order = get_object_or_404(Order, id=pk, user=request.user)
-        return render(request, 'orders/order_detail.html', {'order': order})
+
+        # ✅ NORMAL FLOW
+        normal_steps = [
+            ("PLACED", "Order Placed", "📦"),
+            ("SHIPPED", "Shipped", "🚚"),
+            ("DELIVERED", "Delivered", "✅"),
+        ]
+
+        # 🔁 RETURN FLOW
+        return_steps = [
+            ("RETURN_REQUESTED", "Return Requested", "🔁"),
+            ("PICKUP_SCHEDULED", "Pickup Scheduled", "📅"),
+            ("PICKED_UP", "Completed", "✔"),
+        ]
+
+        # ❌ CANCEL FLOW
+        cancel_steps = [
+            ("PLACED", "Order Placed", "📦"),
+            ("CANCELLED", "Cancelled", "❌"),
+        ]
+
+        # 🔥 FLOW DECISION
+        if order.status == "CANCELLED":
+            steps = cancel_steps
+
+        elif order.status in ["RETURN_REQUESTED", "PICKUP_SCHEDULED", "PICKED_UP"]:
+            steps = normal_steps + return_steps
+
+        else:
+            steps = normal_steps
+
+        # 📊 INDEX CALCULATION
+        status_order = [step[0] for step in steps]
+
+        try:
+            current_index = status_order.index(order.status)
+        except ValueError:
+            current_index = 0
+
+        return render(request, 'orders/order_detail.html', {
+            'order': order,
+            'steps': steps,
+            'current_index': current_index
+        })
 
 
 class BuyNowView(LoginRequiredMixin, View):
