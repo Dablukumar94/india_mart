@@ -5,7 +5,6 @@ from django.db.models import Sum, Count
 from django.utils.timezone import now
 from datetime import timedelta
 from django.contrib.auth.mixins import UserPassesTestMixin
-import json
 
 
 class AdminDashboardView(UserPassesTestMixin, View):
@@ -50,12 +49,12 @@ class AdminDashboardView(UserPassesTestMixin, View):
             'pending_orders': pending_orders,
             'delivered_orders': delivered_orders,
 
-            # ✅ JSON FIX
-            'labels': json.dumps(labels),
-            'order_data': json.dumps(order_data),
-            'revenue_data': json.dumps(revenue_data),
-            'pie_labels': json.dumps(pie_labels),
-            'pie_counts': json.dumps(pie_counts),
+            # ❌ NO json.dumps
+            'labels': labels,
+            'order_data': order_data,
+            'revenue_data': revenue_data,
+            'pie_labels': pie_labels,
+            'pie_counts': pie_counts,
 
             'selected_range': days
         }
