@@ -47,7 +47,9 @@
                             <!-- Dates -->
                             <td>
                                 <div class="small">
-                                    <div><strong>Order:</strong> {{ order.created_at|date:"d M Y" }}</div>
+                                    <div>
+                                        <strong>Order:</strong> {{ order.created_at|date:"d M Y" }}
+                                    </div>
 
                                     {% if order.delivered_at %}
                                     <div class="text-success">
@@ -63,9 +65,9 @@
                                 </div>
                             </td>
 
-                            <!-- Total -->
+                            <!-- Total (SNAPSHOT SAFE) -->
                             <td class="fw-bold text-success">
-                                ₹{{ order.total_amount }}
+                                ₹{{ order.total_amount|floatformat:2 }}
                             </td>
 
                             <!-- Status -->
@@ -95,7 +97,7 @@
                                    View
                                 </a>
 
-                                <!-- ✅ Cancel (ONLY PLACED / SHIPPED) -->
+                                <!-- Cancel -->
                                 {% if order.status == 'PLACED' or order.status == 'SHIPPED' %}
                                 <form method="POST" action="{% url 'cancel-order' order.id %}" class="d-inline">
                                     {% csrf_token %}
@@ -106,10 +108,9 @@
                                 </form>
                                 {% endif %}
 
-                                <!-- ✅ Return / Replace (ONLY DELIVERED) -->
+                                <!-- Return / Replace -->
                                 {% if order.status == 'DELIVERED' %}
                                 
-                                <!-- Return -->
                                 <form method="POST" action="{% url 'return-order' order.id %}" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="return">
@@ -118,7 +119,6 @@
                                     </button>
                                 </form>
 
-                                <!-- Replace -->
                                 <form method="POST" action="{% url 'return-order' order.id %}" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="replace">
@@ -151,7 +151,7 @@
 
 </div>
 
-<!-- ✨ UI Enhancements -->
+<!-- UI Enhancements -->
 <style>
 .order-row:hover {
     background-color: #f8f9fa;

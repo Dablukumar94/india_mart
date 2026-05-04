@@ -5,48 +5,95 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="container mt-5">
 
-    <div class="card shadow p-4">
+    <div class="row justify-content-center">
 
-        <h3 class="mb-3">Select Payment Method</h3>
+        <!-- ================= PAYMENT CARD ================= -->
+        <div class="col-lg-6">
 
-        <p><strong>Order ID:</strong> {{ payment.order.id }}</p>
-        <p><strong>Total Amount:</strong> ₹{{ payment.amount }}</p>
+            <div class="card shadow-sm border-0 p-4 rounded-3">
 
-        <hr>
+                <h4 class="fw-bold mb-3 text-center">Select Payment Method</h4>
 
-        <form method="POST" action="{% url 'process-payment' payment.id %}">
-            {% csrf_token %}
+                <!-- ORDER INFO -->
+                <div class="bg-light p-3 rounded mb-3">
 
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="method" value="QR" required>
-                <label class="form-check-label">
-                    📱 QR Code Payment
-                </label>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Order ID</span>
+                        <span class="fw-semibold">{{ payment.order.id }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Total Amount</span>
+                        <span class="fw-bold text-success">₹{{ payment.amount }}</span>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <!-- PAYMENT FORM -->
+                <form method="POST" action="{% url 'process-payment' payment.id %}">
+                    {% csrf_token %}
+
+                    <!-- QR -->
+                    <label class="payment-option w-100 p-3 border rounded mb-2 d-flex align-items-center gap-2">
+                        <input type="radio" name="method" value="QR" required>
+                        <span>📱 QR Code Payment</span>
+                    </label>
+
+                    <!-- UPI -->
+                    <label class="payment-option w-100 p-3 border rounded mb-2 d-flex align-items-center gap-2">
+                        <input type="radio" name="method" value="UPI">
+                        <span>💳 UPI Payment</span>
+                    </label>
+
+                    <!-- COD -->
+                    <label class="payment-option w-100 p-3 border rounded mb-3 d-flex align-items-center gap-2">
+                        <input type="radio" name="method" value="COD">
+                        <span>🚚 Cash on Delivery (COD)</span>
+                    </label>
+
+                    <!-- BUTTON -->
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                        Continue Payment
+                    </button>
+
+                </form>
+
+                <small class="text-muted d-block text-center mt-3">
+                    Secure payment powered by encrypted system 🔒
+                </small>
+
             </div>
 
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="method" value="UPI">
-                <label class="form-check-label">
-                    💳 UPI Payment
-                </label>
-            </div>
-
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="method" value="COD">
-                <label class="form-check-label">
-                    🚚 Cash on Delivery (COD)
-                </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">
-                Continue Payment
-            </button>
-
-        </form>
+        </div>
 
     </div>
 
 </div>
+
+<!-- ================= STYLE ================= -->
+<style>
+
+.payment-option {
+    cursor: pointer;
+    transition: 0.2s;
+    background: #fff;
+}
+
+.payment-option:hover {
+    border-color: #0d6efd;
+    background: #f8f9ff;
+}
+
+.payment-option input {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+</style>
+
 {% endblock %}

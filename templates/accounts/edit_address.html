@@ -2,78 +2,123 @@
 
 {% block content %}
 
-<div class="container mt-5" style="max-width:600px;">
+<div class="container py-5" style="max-width:680px;">
 
-    <h3 class="mb-4 text-center">Edit Address</h3>
+    <div class="card shadow border-0 rounded-4">
 
-    <form method="POST">
-        {% csrf_token %}
-
-        <!-- Full Name -->
-        <input type="text"
-               name="full_name"
-               class="form-control mb-3"
-               value="{{ last_order.full_name|default:'' }}"
-               placeholder="Full Name"
-               required>
-
-        <!-- Mobile -->
-        <input type="tel"
-               name="mobile"
-               class="form-control mb-3"
-               value="{{ last_order.mobile|default:'' }}"
-               placeholder="Mobile Number"
-               required>
-
-        <!-- Address -->
-        <textarea name="address"
-                  class="form-control mb-3"
-                  rows="3"
-                  placeholder="Full Address"
-                  required>{{ last_order.address|default:'' }}</textarea>
-
-        <!-- District -->
-        <input type="text"
-               name="district"
-               class="form-control mb-3"
-               value="{{ last_order.district|default:'' }}"
-               placeholder="District"
-               required>
-
-        <!-- State -->
-        <input type="text"
-               name="state"
-               class="form-control mb-3"
-               value="{{ last_order.state|default:'' }}"
-               placeholder="State"
-               required>
-
-        <!-- Pincode -->
-        <input type="text"
-               name="pincode"
-               class="form-control mb-4"
-               value="{{ last_order.pincode|default:'' }}"
-               placeholder="Pincode"
-               required>
-
-        <!-- Buttons -->
-        <div class="d-flex gap-2">
-
-            <!-- Cancel -->
-            <a href="{% url 'checkout' %}"
-               class="btn btn-outline-secondary w-50">
-                Cancel
-            </a>
-
-            <!-- Save -->
-            <button type="submit"
-                    class="btn btn-primary w-50">
-                Save & Back
-            </button>
-
+        <!-- Header -->
+        <div class="card-header bg-white border-0 pt-4 text-center">
+            <h4 class="fw-semibold mb-1">Delivery Address</h4>
+            <p class="text-muted small mb-0">
+                Please enter your delivery details
+            </p>
         </div>
 
-    </form>
+        <div class="card-body px-4 pb-4">
+
+            <form method="POST" autocomplete="off">
+                {% csrf_token %}
+
+                <!-- Full Name -->
+                <div class="form-floating mb-3">
+                    <input type="text"
+                           name="full_name"
+                           class="form-control"
+                           id="fullName"
+                           placeholder="Full Name"
+                           value="{{ address.full_name|default:'' }}"
+                           required>
+                    <label for="fullName">Full Name</label>
+                </div>
+
+                <!-- Mobile -->
+                <div class="form-floating mb-3">
+                    <input type="tel"
+                           name="mobile"
+                           class="form-control"
+                           id="mobile"
+                           placeholder="Mobile Number"
+                           value="{{ address.mobile|default:'' }}"
+                           pattern="[6-9]{1}[0-9]{9}"
+                           maxlength="10"
+                           required>
+                    <label for="mobile">Mobile Number</label>
+                    <div class="form-text">Enter a valid 10-digit number</div>
+                </div>
+
+                <!-- Address -->
+                <div class="form-floating mb-3">
+                    <textarea name="address"
+                              class="form-control"
+                              id="address"
+                              style="height:100px"
+                              placeholder="Address"
+                              required>{{ address.address|default:'' }}</textarea>
+                    <label for="address">Full Address</label>
+                </div>
+
+                <!-- District + State -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text"
+                                   name="district"
+                                   class="form-control"
+                                   id="district"
+                                   placeholder="District"
+                                   value="{{ address.district|default:'' }}"
+                                   required>
+                            <label for="district">District</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text"
+                                   name="state"
+                                   class="form-control"
+                                   id="state"
+                                   placeholder="State"
+                                   value="{{ address.state|default:'' }}"
+                                   required>
+                            <label for="state">State</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pincode -->
+                <div class="form-floating mb-4">
+                    <input type="text"
+                           name="pincode"
+                           class="form-control"
+                           id="pincode"
+                           placeholder="Pincode"
+                           value="{{ address.pincode|default:'' }}"
+                           pattern="[0-9]{6}"
+                           maxlength="6"
+                           required>
+                    <label for="pincode">Pincode</label>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-3 pt-2">
+
+                    <a href="{% url 'checkout' %}"
+                       class="btn btn-light border w-50 rounded-3">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary w-50 rounded-3 fw-semibold">
+                        Save Address
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
 
 </div>
 

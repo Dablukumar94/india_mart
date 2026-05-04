@@ -2,26 +2,90 @@
 
 {% block content %}
 
-<div class="container text-center mt-5">
+<div class="container mt-5">
 
-    <div class="card shadow p-5">
+    <div class="row justify-content-center">
 
-        <h2 class="text-success">🎉 Order Placed Successfully!</h2>
+        <div class="col-lg-6">
 
-        <p><strong>Order ID:</strong> {{ order.id }}</p>
-        <p><strong>Total:</strong> ₹{{ order.total_amount }}</p>
-        <p><strong>Status:</strong> {{ order.status }}</p>
+            <!-- SUCCESS CARD -->
+            <div class="card shadow-sm border-0 p-4 text-center rounded-3">
 
-        <hr>
+                <!-- ICON -->
+                <div class="mb-3">
+                    <div style="font-size:60px;">🎉</div>
+                </div>
 
-        <h5>Items:</h5>
-        {% for item in order.items.all %}
-            <p>{{ item.product.name }} x {{ item.quantity }}</p>
-        {% endfor %}
+                <h3 class="fw-bold text-success mb-2">
+                    Order Placed Successfully!
+                </h3>
 
-        <a href="{% url 'product-list' %}" class="btn btn-primary mt-3">
-            Continue Shopping
-        </a>
+                <p class="text-muted mb-4">
+                    Thank you for your purchase
+                </p>
+
+                <!-- ORDER INFO -->
+                <div class="bg-light p-3 rounded mb-3 text-start">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Order ID</span>
+                        <span class="fw-semibold">{{ order.id }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Amount</span>
+                        <span class="fw-bold text-success">
+                            ₹{{ order.total_amount|floatformat:2 }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Status</span>
+                        <span class="badge bg-primary">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- ITEMS -->
+                <div class="text-start">
+
+                    <h6 class="fw-bold mb-3">Items</h6>
+
+                    {% for item in order.items.all %}
+
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                        <div>
+                            <div class="fw-semibold">
+                                {{ item.product_name }}
+                            </div>
+
+                            <small class="text-muted">
+                                Qty: {{ item.quantity }}
+                            </small>
+                        </div>
+
+                        <div class="fw-bold text-primary">
+                            ₹{{ item.price|floatformat:2 }}
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <!-- ACTION BUTTON -->
+                <a href="{% url 'product-list' %}"
+                   class="btn btn-success w-100 mt-4 py-2">
+                    Continue Shopping
+                </a>
+
+            </div>
+
+        </div>
 
     </div>
 
