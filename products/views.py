@@ -4,7 +4,6 @@ from django.core.paginator import Paginator
 
 from .models import Product
 
-
 # --------------------
 # PRODUCT LIST
 # --------------------

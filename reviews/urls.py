@@ -1,8 +1,8 @@
 # reviews/urls.py
 
 from django.urls import path
-from .views import AddReviewAjaxView
+from .views import AddReviewView
 
 urlpatterns = [
-    path("add-review/", AddReviewAjaxView.as_view(), name="add-review"),
+    path("add/", AddReviewView.as_view(), name="add-review"),
 ]

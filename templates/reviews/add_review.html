@@ -1,0 +1,167 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-6">
+
+            <!-- CSRF -->
+            <form style="display:none;">
+                {% csrf_token %}
+            </form>
+
+            <!-- ORDER REDIRECT URL -->
+            <script>
+                const ORDER_URL = "{% url 'order-detail' order.id %}";
+            </script>
+
+            <!-- CARD -->
+            <div class="card shadow-sm p-4">
+
+                <h5 class="fw-bold mb-3">⭐ Write Review</h5>
+
+                <!-- PRODUCT INFO -->
+                <div class="d-flex align-items-center mb-3">
+
+                    <div style="width:70px;height:70px;">
+                        {% if product.display_image %}
+                            <img src="{{ product.display_image }}" class="img-fluid rounded">
+                        {% else %}
+                            <img src="{% static 'images/no-image.png' %}" class="img-fluid rounded">
+                        {% endif %}
+                    </div>
+
+                    <div class="ms-3">
+                        <div class="fw-semibold">{{ product.name }}</div>
+                        <div class="text-muted small">Give your rating & review</div>
+                    </div>
+
+                </div>
+
+                <!-- ⭐ STARS -->
+                <div class="star-rating mb-3" data-product="{{ product.id }}">
+                    <i class="bi bi-star star" data-value="1"></i>
+                    <i class="bi bi-star star" data-value="2"></i>
+                    <i class="bi bi-star star" data-value="3"></i>
+                    <i class="bi bi-star star" data-value="4"></i>
+                    <i class="bi bi-star star" data-value="5"></i>
+                </div>
+
+                <!-- COMMENT -->
+                <textarea class="form-control review-comment"
+                          placeholder="Write your review (optional)..."
+                          rows="4"></textarea>
+
+                <!-- BUTTON -->
+                <button class="btn btn-primary w-100 mt-3 submit-review-btn"
+                        data-product="{{ product.id }}">
+                    Submit Review
+                </button>
+
+                <!-- SUCCESS -->
+                <div class="text-success mt-3 d-none review-success">
+                    ✔ Review submitted successfully
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+
+// CSRF
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// ⭐ STAR SELECTION
+document.querySelectorAll('.star-rating').forEach(rating => {
+
+    const stars = rating.querySelectorAll('.star');
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+
+            let value = index + 1;
+
+            stars.forEach(s => {
+                s.classList.remove('bi-star-fill');
+                s.classList.add('bi-star');
+            });
+
+            for (let i = 0; i < value; i++) {
+                stars[i].classList.remove('bi-star');
+                stars[i].classList.add('bi-star-fill');
+            }
+
+            rating.dataset.selected = value;
+        });
+    });
+
+});
+
+
+// 🚀 SUBMIT REVIEW
+document.querySelector('.submit-review-btn').addEventListener('click', function () {
+
+    let productId = this.dataset.product;
+
+    let rating = document.querySelector('.star-rating').dataset.selected;
+    let comment = document.querySelector('.review-comment').value;
+
+    if (!rating) {
+        alert("Please select rating");
+        return;
+    }
+
+    fetch("{% url 'add-review' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            rating: rating,
+            comment: comment
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+
+            // UI update
+            document.querySelector('.review-success').classList.remove('d-none');
+            this.disabled = true;
+            this.innerText = "Submitted";
+
+            // 🚀 redirect to order detail
+            setTimeout(() => {
+                window.location.href = ORDER_URL;
+            }, 800);
+
+        } else {
+            alert(data.message);
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Something went wrong");
+    });
+
+});
+
+</script>
+
+{% endblock %}

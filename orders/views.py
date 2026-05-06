@@ -46,7 +46,9 @@ class OrderDetailView(LoginRequiredMixin, View):
             user=request.user
         )
 
-        # FLOW
+        items = list(order.items.all())  # ✅ ek baar fetch
+
+        # -------- TRACKING FLOW --------
         normal_steps = [
             ("PLACED", "Order Placed", "✔"),
             ("SHIPPED", "Shipped", "✔"),
@@ -73,16 +75,13 @@ class OrderDetailView(LoginRequiredMixin, View):
 
         status_order = [s[0] for s in steps]
 
-        try:
-            current_index = status_order.index(order.status)
-        except ValueError:
-            current_index = 0
+        current_index = status_order.index(order.status) if order.status in status_order else 0
 
-        # PAYMENT
+        # -------- PAYMENT --------
         payment = Payment.objects.filter(order=order).first()
 
-        # REVIEWS
-        product_ids = [item.product_id for item in order.items.all()]
+        # -------- REVIEWS --------
+        product_ids = [item.product_id for item in items]
 
         reviews = Review.objects.filter(
             user=request.user,
@@ -91,17 +90,19 @@ class OrderDetailView(LoginRequiredMixin, View):
 
         review_map = {r.product_id: r.rating for r in reviews}
 
-        for item in order.items.all():
+        # attach review data to items
+        for item in items:
             item.already_reviewed = item.product_id in review_map
             item.user_rating = review_map.get(item.product_id, 0)
 
+        # -------- FINAL RESPONSE --------
         return render(request, "orders/order_detail.html", {
             "order": order,
+            "items": items,   # ✅ important (use this in template)
             "steps": steps,
             "current_index": current_index,
             "payment": payment
         })
-
 
 # =========================
 # CHECKOUT

@@ -12,7 +12,7 @@
 
             <!-- HEADER -->
             <div class="card shadow-sm mb-3 p-3">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex justify-content-between align-items-center">
 
                     <div>
                         <h5 class="fw-bold mb-1">Order #{{ order.id }}</h5>
@@ -30,11 +30,9 @@
 
             <!-- TRACKING -->
             <div class="card shadow-sm mb-3 p-3">
-
                 <h6 class="fw-bold mb-4">📦 Tracking Status</h6>
 
                 <div class="track-wrapper">
-
                     <div class="track-line" id="progressBar"></div>
 
                     {% for step in steps %}
@@ -58,31 +56,31 @@
 
                     </div>
                     {% endfor %}
-
                 </div>
-
             </div>
 
-            <!-- ITEMS (FIXED) -->
-            <h6 class="fw-bold mb-3">Items</h6>
+            <!-- ITEMS -->
 
-            {% for item in order.items.all %}
-            <div class="card shadow-sm mb-2 p-2">
+            {% for item in items %}
 
-                <div class="d-flex align-items-center item-row">
+            <!-- PRODUCT CARD -->
+            <div class="card shadow-sm mb-0 p-3">
+                <h6 class="fw-bold mb-3">Items</h6>
 
-                    <!-- IMAGE FIX -->
-                    <div class="item-img">
+                <div class="d-flex align-items-center">
+
+                    <!-- IMAGE -->
+                    <div style="width:80px;height:80px;">
                         {% if item.product_image %}
-                            <img src="{{ item.product_image }}">
+                            <img src="{{ item.product_image }}" class="img-fluid rounded">
                         {% else %}
-                            <img src="{% static 'images/no-image.png' %}">
+                            <img src="{% static 'images/no-image.png' %}" class="img-fluid rounded">
                         {% endif %}
                     </div>
 
                     <!-- INFO -->
-                    <div class="item-info">
-                        <div class="fw-semibold text-truncate">
+                    <div class="ms-3 flex-grow-1">
+                        <div class="fw-semibold">
                             {{ item.product_name }}
                         </div>
                         <div class="text-muted small">
@@ -91,20 +89,57 @@
                     </div>
 
                     <!-- PRICE -->
-                    <div class="item-price">
+                    <div class="fw-bold">
                         ₹{{ item.price|floatformat:2 }}
                     </div>
 
                 </div>
 
             </div>
+
+            <!-- REVIEW CARD -->
+            <div style="height:15px;"></div>
+            {% if order.status|upper == "DELIVERED" %}
+            <div class="card shadow-sm mb-3 p-3">
+
+                <h6 class="fw-semibold mb-2">⭐ Rate this product</h6>
+
+                {% if item.already_reviewed %}
+
+                    <span class="text-success small fw-semibold">
+                        ✔ Reviewed
+                    </span>
+
+                    <div class="mt-1">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= item.user_rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+
+                    <a href="{% url 'add-review' %}?product={{ item.product_id }}"
+                    class="btn btn-sm btn-outline-primary">
+                        Write Review
+                    </a>
+
+                {% endif %}
+            </div>
+            {% endif %}
+
             {% endfor %}
 
         </div>
 
+
         <!-- RIGHT -->
         <div class="col-lg-4">
 
+            <!-- ADDRESS -->
             <div class="card shadow-sm mb-3 p-3">
                 <h6 class="fw-bold mb-2">Delivery Address</h6>
 
@@ -120,8 +155,8 @@
                 {% endif %}
             </div>
 
+            <!-- SUMMARY -->
             <div class="card shadow-sm p-3">
-
                 <h6 class="fw-bold mb-3">Order Summary</h6>
 
                 <div class="d-flex justify-content-between">
@@ -149,7 +184,6 @@
                 <a href="{% url 'invoice' order.id %}" class="btn btn-dark w-100 mt-3">
                     Download Invoice
                 </a>
-
             </div>
 
         </div>
@@ -157,102 +191,33 @@
     </div>
 </div>
 
-<!-- FIXED CSS -->
-<style>
-
-/* TRACK */
-.track-wrapper{
-    display:flex;
-    justify-content:space-between;
-    position:relative;
-    padding:0 10px;
-    overflow:hidden;
-}
-
-.track-wrapper::before{
-    content:"";
-    position:absolute;
-    top:18px;
-    left:10px;
-    right:10px;
-    height:4px;
-    background:#e0e0e0;
-    z-index:0;
-    border-radius:10px;
-}
-
-.track-line{
-    position:absolute;
-    top:18px;
-    left:10px;
-    height:4px;
-    width:0%;
-    background:#28a745;
-    z-index:1;
-    border-radius:10px;
-}
-
-/* STEP FIX */
-.step{
-    text-align:center;
-    flex:1;
-    position:relative;
-    z-index:3;
-}
-
-/* CIRCLE */
-.circle{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    background:#ddd;
-    margin:auto;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:bold;
-    z-index:4;
-    position:relative;
-}
-
-.circle.done{ background:#28a745; color:#fff; }
-.circle.active{ background:#0d6efd; color:#fff; }
-
-/* ITEMS FIX (IMPORTANT) */
-.item-row{
-    gap:12px;
-}
-
-.item-img img{
-    width:70px;
-    height:70px;
-    object-fit: contain;
-    border-radius:8px;
-    background:#f5f5f5;
-}
-
-.item-info{
-    flex:1;
-    min-width:0;
-}
-
-.item-price{
-    min-width:70px;
-    text-align:right;
-    font-weight:bold;
-}
-
-</style>
-
 <!-- JS -->
 <script>
-let totalSteps = {{ steps|length }};
-let currentStep = {{ current_index }};
+document.querySelectorAll('.star-rating').forEach(rating => {
 
-if(totalSteps > 1){
-    let percent = (currentStep / (totalSteps - 1)) * 100;
-    document.getElementById("progressBar").style.width = percent + "%";
-}
+    const stars = rating.querySelectorAll('.star');
+    const productId = rating.dataset.product;
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+
+            let value = index + 1;
+
+            stars.forEach(s => {
+                s.classList.remove('bi-star-fill');
+                s.classList.add('bi-star');
+            });
+
+            for (let i = 0; i < value; i++) {
+                stars[i].classList.remove('bi-star');
+                stars[i].classList.add('bi-star-fill');
+            }
+
+            document.getElementById(`review-btn-${productId}`).classList.remove('d-none');
+        });
+    });
+
+});
 </script>
 
 {% endblock %}
