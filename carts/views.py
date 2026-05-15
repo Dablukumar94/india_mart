@@ -29,6 +29,13 @@ class CartView(LoginRequiredMixin, View):
     login_url = 'login'
 
     def get(self, request):
+        # 🔥 Sabse pehle Buy Now session clear karein
+        # Taaki agar user cart dekh raha hai, toh purana "Buy Now" khatam ho jaye
+        if 'buy_now_product_id' in request.session:
+            del request.session['buy_now_product_id']
+            if 'buy_now_quantity' in request.session:
+                del request.session['buy_now_quantity']
+
         cart = get_user_cart(request.user)
         items = list(cart.items.select_related('product'))
         total = sum(item.get_total_price() for item in items)
@@ -42,7 +49,6 @@ class CartView(LoginRequiredMixin, View):
                 'total': total,
             },
         )
-
 
 class IncreaseQtyView(LoginRequiredMixin, View):
     login_url = 'login'

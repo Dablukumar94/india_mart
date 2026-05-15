@@ -20,14 +20,9 @@
                 <!-- ORDER INFO -->
                 <div class="bg-light p-3 rounded mb-3">
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Order ID</span>
-                        <span class="fw-semibold">{{ payment.order.id }}</span>
-                    </div>
-
                     <div class="d-flex justify-content-between">
                         <span class="text-muted">Total Amount</span>
-                        <span class="fw-bold text-success">₹{{ payment.amount }}</span>
+                        <span class="fw-bold text-success">₹ {{ data.total_amount }}</span>
                     </div>
 
                 </div>
@@ -35,7 +30,7 @@
                 <hr>
 
                 <!-- PAYMENT FORM -->
-                <form method="POST" action="{% url 'process-payment' payment.id %}">
+                <form method="POST" action="{% url 'process-payment' %}">
                     {% csrf_token %}
 
                     <!-- QR -->

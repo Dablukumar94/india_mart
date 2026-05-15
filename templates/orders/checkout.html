@@ -9,161 +9,115 @@
         <!-- ================= LEFT SIDE ================= -->
         <div class="col-lg-7">
 
-            <h4 class="fw-bold mb-4">Checkout</h4>
+            <h4 class="fw-bold mb-4">
+                Checkout 
+                {% if is_buy_now %}<span class="badge bg-info style="font-size: 0.5em;">Buy Now</span>{% endif %}
+            </h4>
 
             <!-- ================= ADDRESS ================= -->
             <div class="card shadow-sm p-3 mb-4">
-
                 {% if address %}
-
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0">Delivery Address</h6>
-
-                        <a href="{% url 'address' %}" class="btn btn-sm btn-outline-primary">
-                            Change
-                        </a>
+                        <a href="{% url 'address' %}" class="btn btn-sm btn-outline-primary">Change</a>
                     </div>
-
                     <p class="mb-1 fw-bold">{{ address.full_name }}</p>
-
                     <p class="mb-1">{{ address.address }}</p>
-
                     <p class="mb-1 text-muted">
                         {{ address.district }}, {{ address.state }} - {{ address.pincode }}
                     </p>
-
                     <p class="mb-0">📞 {{ address.mobile }}</p>
-
                 {% else %}
-
-                    <div class="alert alert-warning">
-                        No delivery address added yet
-                    </div>
-
-                    <a href="{% url 'address' %}" class="btn btn-primary px-4">
-                        + Add New Address
-                    </a>
-
+                    <div class="alert alert-warning">No delivery address added yet</div>
+                    <a href="{% url 'address' %}" class="btn btn-primary px-4">+ Add New Address</a>
                 {% endif %}
-
             </div>
 
             <!-- ================= ITEMS ================= -->
             <div class="card shadow-sm p-3">
-
                 <h6 class="fw-bold mb-3">Items</h6>
 
                 {% for item in cart_items %}
-
                 <div class="d-flex align-items-center justify-content-between border-bottom py-3">
-
+                    
                     <!-- LEFT: IMAGE + INFO -->
                     <div class="d-flex align-items-center gap-3">
-
                         <!-- IMAGE -->
                         <div>
                             {% if item.product.main_image %}
                                 <img src="{{ item.product.main_image.url }}"
-                                    style="
-                                        width:80px;
-                                        height:80px;
-                                        object-fit:contain;
-                                        background:white;
-                                        padding:4px;
-                                        border-radius:8px;
-                                        border:1px solid #eee;
-                                    ">
+                                    style="width:80px; height:80px; object-fit:contain; background:white; padding:4px; border-radius:8px; border:1px solid #eee;">
                             {% else %}
-                                <div style="
-                                    width:80px;
-                                    height:80px;
-                                    background:#f1f1f1;
-                                    border-radius:8px;
-                                "></div>
+                                <div style="width:80px; height:80px; background:#f1f1f1; border-radius:8px;"></div>
                             {% endif %}
                         </div>
 
                         <!-- INFO -->
                         <div>
-                            <div class="fw-semibold">
-                                {{ item.product.name }}
-                            </div>
-
+                            <div class="fw-semibold">{{ item.product.name }}</div>
                             <small class="text-muted">
-                                Qty: {{ item.quantity }}
+                                ₹{{ item.product.price }} x {{ item.quantity }}
                             </small>
                         </div>
-
                     </div>
 
-                    <!-- PRICE -->
+                    <!-- PRICE (Fixed Calculation) -->
                     <div class="fw-bold text-primary">
-                        ₹{{ item.get_total_price }}
+                        <!-- Yahan humne widthratio use kiya hai multiplication ke liye -->
+                        ₹{% widthratio item.product.price 1 item.quantity %}
                     </div>
 
                 </div>
-
                 {% endfor %}
-
             </div>
-
         </div>
 
         <!-- ================= RIGHT SIDE (SUMMARY) ================= -->
         <div class="col-lg-5">
-
             <h5 class="fw-bold mb-3">Order Summary</h5>
-
             <div class="card shadow-sm p-3 position-sticky" style="top:20px;">
 
-                <!-- ITEMS TOTAL -->
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Items Total</span>
                     <span>₹{{ items_total|floatformat:2 }}</span>
                 </div>
 
-                <!-- DELIVERY -->
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Delivery Fee</span>
-                    <span class="text-success">₹{{ delivery_fee|floatformat:2 }}</span>
-                </div>
-
-                <!-- DISCOUNT -->
                 <div class="d-flex justify-content-between mb-2 text-danger">
                     <span>Discount</span>
                     <span>-₹{{ discount|floatformat:2 }}</span>
                 </div>
 
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Delivery Fee</span>
+
+                    {% if delivery_fee == 0 or delivery_fee == 0.00 %}
+                        <span class="text-success fw-semibold">FREE</span>
+                    {% else %}
+                        <span class="text-success">₹{{ delivery_fee|floatformat:2 }}</span>
+                    {% endif %}
+                </div>
+
                 <hr>
 
-                <!-- FINAL TOTAL -->
                 <div class="d-flex justify-content-between fw-bold mb-3">
                     <span>Total Payable</span>
-                    <span class="text-dark">
-                        ₹{{ total_amount|floatformat:2 }}
-                    </span>
+                    <span class="text-dark">₹{{ total_amount|floatformat:2 }}</span>
                 </div>
 
                 <!-- PLACE ORDER -->
                 <form method="POST">
                     {% csrf_token %}
-
-                    <button class="btn btn-success w-100 py-2">
-                        Place Order
+                    <button class="btn btn-success w-100 py-2 fw-bold" {% if not address %}disabled{% endif %}>
+                        Confirm & Place Order
                     </button>
-
                 </form>
 
                 <small class="text-muted d-block text-center mt-2">
-                    By placing order you agree to terms & conditions
+                    Safe & Secure Payments
                 </small>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 {% endblock %}

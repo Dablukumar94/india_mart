@@ -107,15 +107,14 @@ class OrderDetailView(LoginRequiredMixin, View):
 # =========================
 # CHECKOUT
 # =========================
-def calculate_cart_totals(cart):
-    items = list(cart.items.select_related('product'))
-
-    items_total = sum(item.product.price * item.quantity for item in items)
-
-    # future ready (offers / coupons)
+def calculate_checkout_data(items_list):
+    """
+    items_list should be a list of objects/dicts containing 'product' and 'quantity'
+    """
+    items_total = sum(item['product'].price * item['quantity'] for item in items_list)
+    
     delivery_fee = Decimal("50.00")
     discount = Decimal("10.00")
-
     total_amount = items_total + delivery_fee - discount
 
     return {
@@ -123,102 +122,82 @@ def calculate_cart_totals(cart):
         "delivery_fee": delivery_fee,
         "discount": discount,
         "total_amount": total_amount,
-        "items": items
+        "items": items_list # List of {'product': p, 'quantity': q}
     }
 
 
+# =========================
+# SHOW CHECKOUT PAGE
+# =========================
 
 class CheckoutView(LoginRequiredMixin, View):
     login_url = 'login'
 
-    # =========================
-    # SHOW CHECKOUT PAGE
-    # =========================
+    def get_checkout_items(self, request):
+        # 1. Check if "Buy Now" is active
+        buy_now_id = request.session.get('buy_now_product_id')
+        if buy_now_id:
+            product = get_object_or_404(Product, id=buy_now_id)
+            quantity = request.session.get('buy_now_quantity', 1)
+            return [{'product': product, 'quantity': quantity}], True
+
+        # 2. Otherwise, get from Cart
+        cart = Cart.objects.filter(user=request.user).prefetch_related('items__product').first()
+        if cart:
+            items = [{'product': item.product, 'quantity': item.quantity} for item in cart.items.all()]
+            return items, False
+        
+        return [], False
+
     def get(self, request):
+        address = Address.objects.filter(user=request.user, is_default=True).first()
+        items_list, is_buy_now = self.get_checkout_items(request)
 
-        address = Address.objects.filter(
-            user=request.user,
-            is_default=True
-        ).first()
+        if not items_list:
+            return redirect('cart') # Cart empty hai aur Buy Now bhi nahi hai
 
-        cart = Cart.objects.filter(
-            user=request.user
-        ).prefetch_related('items__product').first()
-
-        if not cart:
-            return render(request, "orders/checkout.html", {
-                "address": address,
-                "cart_items": [],
-                "items_total": 0,
-                "delivery_fee": 0,
-                "discount": 0,
-                "total_amount": 0,
-            })
-
-        data = calculate_cart_totals(cart)
-
-        return render(request, "orders/checkout.html", {
+        data = calculate_checkout_data(items_list)
+        
+        context = {
             "address": address,
             "cart_items": data["items"],
             "items_total": data["items_total"],
             "delivery_fee": data["delivery_fee"],
             "discount": data["discount"],
             "total_amount": data["total_amount"],
-        })
+            "is_buy_now": is_buy_now
+        }
+        return render(request, "orders/checkout.html", context)
 
-    # =========================
-    # PLACE ORDER
-    # =========================
     def post(self, request):
 
-        cart = Cart.objects.filter(
-            user=request.user
-        ).prefetch_related('items__product').first()
-
-        if not cart or not cart.items.exists():
-            return redirect('cart')
-
-        address = Address.objects.filter(
-            user=request.user,
-            is_default=True
-        ).first()
-
+        address = Address.objects.filter(user=request.user, is_default=True).first()
         if not address:
             return redirect('address')
 
-        # 🔥 SINGLE SOURCE OF TRUTH
-        data = calculate_cart_totals(cart)
+        items_list, is_buy_now = self.get_checkout_items(request)
+        if not items_list:
+            return redirect('cart')
 
-        # CREATE ORDER
-        order = Order.objects.create(
-            user=request.user,
-            address=address,
+        data = calculate_checkout_data(items_list)
 
-            items_total=data["items_total"],
-            delivery_fee=data["delivery_fee"],
-            discount=data["discount"],
-            total_amount=data["total_amount"],
+        # 🔥 SAVE DATA ONLY (NO DB)
+        request.session["checkout_data"] = {
+            "items": [
+                {
+                    "product_id": str(item["product"].id),
+                    "quantity": item["quantity"]
+                }
+                for item in data["items"]
+            ],
+            "items_total": str(data["items_total"]),
+            "delivery_fee": str(data["delivery_fee"]),
+            "discount": str(data["discount"]),
+            "total_amount": str(data["total_amount"]),
+        }
 
-            status="PLACED",
-        )
-
-        # ORDER ITEMS SNAPSHOT
-        for item in data["items"]:
-
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-
-                product_name=item.product.name,
-                product_image=item.product.main_image.url if item.product.main_image else "",
-
-                price=item.product.price,
-                quantity=item.quantity,
-            )
-
-        cart.items.all().delete()
-
-        return redirect('payment-detail', order_id=order.id)
+        return redirect('payment-detail')   # no order_id
+    
 
 # =========================
 # SUCCESS
@@ -244,18 +223,11 @@ class OrderHistoryView(LoginRequiredMixin, View):
 # BUY NOW
 # =========================
 class BuyNowView(LoginRequiredMixin, View):
-    login_url = 'login'
-
     def get(self, request, pk):
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        cart.items.all().delete()
-
-        product = get_object_or_404(Product, id=pk)
-
-        CartItem.objects.create(cart=cart, product=product, quantity=1)
-
+        # Purana Buy Now data saaf karein aur naya set karein
+        request.session['buy_now_product_id'] = str(pk)
+        request.session['buy_now_quantity'] = 1
         return redirect('checkout')
-
 
 # =========================
 # CANCEL
