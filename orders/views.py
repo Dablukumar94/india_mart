@@ -1,36 +1,26 @@
-from decimal import Decimal
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.http import HttpResponse
 
 from reportlab.pdfgen import canvas
+from decimal import Decimal
 
 from accounts.models import Address
-from carts.models import Cart, CartItem
-from products.models import Product
+
 from payments.models import Payment
 from reviews.models import Review
+from orders.models import Order
 
-from .models import Order, OrderItem, OrderStatusHistory
+from orders.services import (
+    get_checkout_items,
+    calculate_checkout_data,
+    store_checkout_session,
+    clear_buy_now_session,
+    update_order_status
+)
 
 
-
-def update_order_status(order, new_status, user=None):
-    old_status = order.status
-
-    if old_status == new_status:
-        return
-
-    order.status = new_status
-    order.save(update_fields=["status"])
-
-    OrderStatusHistory.objects.create(
-        order=order,
-        old_status=old_status,
-        new_status=new_status,
-        changed_by=user
-    )
 
 # =========================
 # ORDER DETAIL
@@ -46,9 +36,8 @@ class OrderDetailView(LoginRequiredMixin, View):
             user=request.user
         )
 
-        items = list(order.items.all())  # ✅ ek baar fetch
+        items = list(order.items.all())
 
-        # -------- TRACKING FLOW --------
         normal_steps = [
             ("PLACED", "Order Placed", "✔"),
             ("SHIPPED", "Shipped", "✔"),
@@ -74,13 +63,10 @@ class OrderDetailView(LoginRequiredMixin, View):
             steps = normal_steps
 
         status_order = [s[0] for s in steps]
-
         current_index = status_order.index(order.status) if order.status in status_order else 0
 
-        # -------- PAYMENT --------
         payment = Payment.objects.filter(order=order).first()
 
-        # -------- REVIEWS --------
         product_ids = [item.product_id for item in items]
 
         reviews = Review.objects.filter(
@@ -90,75 +76,45 @@ class OrderDetailView(LoginRequiredMixin, View):
 
         review_map = {r.product_id: r.rating for r in reviews}
 
-        # attach review data to items
         for item in items:
             item.already_reviewed = item.product_id in review_map
             item.user_rating = review_map.get(item.product_id, 0)
 
-        # -------- FINAL RESPONSE --------
         return render(request, "orders/order_detail.html", {
             "order": order,
-            "items": items,   # ✅ important (use this in template)
+            "items": items,
             "steps": steps,
             "current_index": current_index,
             "payment": payment
         })
 
+
 # =========================
 # CHECKOUT
 # =========================
-def calculate_checkout_data(items_list):
-    """
-    items_list should be a list of objects/dicts containing 'product' and 'quantity'
-    """
-    items_total = sum(item['product'].price * item['quantity'] for item in items_list)
-    
-    delivery_fee = Decimal("50.00")
-    discount = Decimal("10.00")
-    total_amount = items_total + delivery_fee - discount
-
-    return {
-        "items_total": items_total,
-        "delivery_fee": delivery_fee,
-        "discount": discount,
-        "total_amount": total_amount,
-        "items": items_list # List of {'product': p, 'quantity': q}
-    }
-
-
-# =========================
-# SHOW CHECKOUT PAGE
-# =========================
-
 class CheckoutView(LoginRequiredMixin, View):
     login_url = 'login'
 
-    def get_checkout_items(self, request):
-        # 1. Check if "Buy Now" is active
-        buy_now_id = request.session.get('buy_now_product_id')
-        if buy_now_id:
-            product = get_object_or_404(Product, id=buy_now_id)
-            quantity = request.session.get('buy_now_quantity', 1)
-            return [{'product': product, 'quantity': quantity}], True
-
-        # 2. Otherwise, get from Cart
-        cart = Cart.objects.filter(user=request.user).prefetch_related('items__product').first()
-        if cart:
-            items = [{'product': item.product, 'quantity': item.quantity} for item in cart.items.all()]
-            return items, False
-        
-        return [], False
+    def get_default_address(self, user):
+        return Address.objects.filter(
+            user=user,
+            is_default=True
+        ).first()
 
     def get(self, request):
-        address = Address.objects.filter(user=request.user, is_default=True).first()
-        items_list, is_buy_now = self.get_checkout_items(request)
+        address = self.get_default_address(request.user)
+
+        if not address:
+            return redirect('address')
+
+        items_list, is_buy_now = get_checkout_items(request.user, request.session)
 
         if not items_list:
-            return redirect('cart') # Cart empty hai aur Buy Now bhi nahi hai
+            return redirect('cart')
 
         data = calculate_checkout_data(items_list)
-        
-        context = {
+
+        return render(request, "orders/checkout.html", {
             "address": address,
             "cart_items": data["items"],
             "items_total": data["items_total"],
@@ -166,38 +122,26 @@ class CheckoutView(LoginRequiredMixin, View):
             "discount": data["discount"],
             "total_amount": data["total_amount"],
             "is_buy_now": is_buy_now
-        }
-        return render(request, "orders/checkout.html", context)
+        })
 
     def post(self, request):
+        address = self.get_default_address(request.user)
 
-        address = Address.objects.filter(user=request.user, is_default=True).first()
         if not address:
             return redirect('address')
 
-        items_list, is_buy_now = self.get_checkout_items(request)
+        items_list, _ = get_checkout_items(request.user, request.session)
+
         if not items_list:
             return redirect('cart')
 
         data = calculate_checkout_data(items_list)
 
-        # 🔥 SAVE DATA ONLY (NO DB)
-        request.session["checkout_data"] = {
-            "items": [
-                {
-                    "product_id": str(item["product"].id),
-                    "quantity": item["quantity"]
-                }
-                for item in data["items"]
-            ],
-            "items_total": str(data["items_total"]),
-            "delivery_fee": str(data["delivery_fee"]),
-            "discount": str(data["discount"]),
-            "total_amount": str(data["total_amount"]),
-        }
+        store_checkout_session(request.session, data)
+        clear_buy_now_session(request.session)
 
-        return redirect('payment-detail')   # no order_id
-    
+        return redirect('payment-detail')
+
 
 # =========================
 # SUCCESS
@@ -224,29 +168,24 @@ class OrderHistoryView(LoginRequiredMixin, View):
 # =========================
 class BuyNowView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        # Purana Buy Now data saaf karein aur naya set karein
-        request.session['buy_now_product_id'] = str(pk)
+        request.session['buy_now_product_id'] = str(pk)  # FIX: UUID safe
         request.session['buy_now_quantity'] = 1
         return redirect('checkout')
 
+
 # =========================
-# CANCEL
+# CANCEL ORDER
 # =========================
 class CancelOrderView(LoginRequiredMixin, View):
-    login_url = 'login'
 
     def post(self, request, order_id):
+
         order = get_object_or_404(Order, id=order_id, user=request.user)
 
         if order.status in ['PLACED', 'SHIPPED']:
 
-            old_status = order.status
-            order.status = 'CANCELLED'
-            order.save(update_fields=['status'])
-
             update_order_status(
                 order=order,
-                old_status=old_status,
                 new_status="CANCELLED",
                 user=request.user
             )
@@ -256,34 +195,30 @@ class CancelOrderView(LoginRequiredMixin, View):
 
 # =========================
 # RETURN / REPLACE
-# =========================    
+# =========================
 class ReturnOrderView(LoginRequiredMixin, View):
-    login_url = 'login'
 
     def post(self, request, order_id):
-        order = get_object_or_404(Order, id=order_id, user=request.user)
 
-        action = request.POST.get("action")
+        order = get_object_or_404(Order, id=order_id, user=request.user)
 
         if order.status != "DELIVERED":
             return redirect('order-history')
 
-        if action == "return":
-            new_status = "RETURN_REQUESTED"
+        action = request.POST.get("action")
 
-        elif action == "replace":
-            new_status = "REPLACEMENT_REQUESTED"
+        status_map = {
+            "return": "RETURN_REQUESTED",
+            "replace": "REPLACEMENT_REQUESTED"
+        }
 
-        else:
+        new_status = status_map.get(action)
+
+        if not new_status:
             return redirect('order-history')
-        
-        old_status = order.status
-        order.status = new_status
-        order.save(update_fields=["status"])
 
         update_order_status(
             order=order,
-            old_status=old_status,
             new_status=new_status,
             user=request.user
         )
@@ -291,9 +226,8 @@ class ReturnOrderView(LoginRequiredMixin, View):
         return redirect('order-history')
 
 
-
 # =========================
-# INVOICE (FIXED)
+# INVOICE (PRODUCTION SAFE)
 # =========================
 class InvoiceView(LoginRequiredMixin, View):
 
@@ -307,11 +241,10 @@ class InvoiceView(LoginRequiredMixin, View):
 
         payment = Payment.objects.filter(order=order).first()
 
-        # ❌ NO CALCULATION HERE
-        items_total = order.items_total
-        delivery_fee = order.delivery_fee
-        discount = order.discount
-        total_amount = order.total_amount
+        items_total = order.items_total or Decimal("0")
+        delivery_fee = order.delivery_fee or Decimal("0")
+        discount = order.discount or Decimal("0")
+        total_amount = order.total_amount or Decimal("0")
 
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="invoice_{order.id}.pdf"'
@@ -336,13 +269,13 @@ class InvoiceView(LoginRequiredMixin, View):
         y -= 20
         p.setFont("Helvetica-Bold", 10)
 
-        p.drawString(50, y, f"Items Total: ₹{items_total:.2f}")
+        p.drawString(50, y, f"Items Total: ₹{items_total}")
         y -= 15
-        p.drawString(50, y, f"Delivery: ₹{delivery_fee:.2f}")
+        p.drawString(50, y, f"Delivery: ₹{delivery_fee}")
         y -= 15
-        p.drawString(50, y, f"Discount: ₹{discount:.2f}")
+        p.drawString(50, y, f"Discount: ₹{discount}")
         y -= 20
-        p.drawString(50, y, f"TOTAL: ₹{total_amount:.2f}")
+        p.drawString(50, y, f"TOTAL: ₹{total_amount}")
 
         p.showPage()
         p.save()

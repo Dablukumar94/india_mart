@@ -72,9 +72,9 @@
                     <!-- IMAGE -->
                     <div style="width:80px;height:80px;">
                         {% if item.product and item.product.display_image %}
-                            <img src="{{ item.product.display_image }}" class="img-fluid rounded">
+                            <img src="{{ item.product.display_image }}" class="img-fluid">
                         {% else %}
-                            <img src="{% static 'images/no-image.png' %}" class="img-fluid rounded">
+                            <img src="{% static 'images/no-image.png' %}" class="img-fluid">
                         {% endif %}
                     </div>
 

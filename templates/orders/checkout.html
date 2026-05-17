@@ -75,46 +75,58 @@
         <!-- ================= RIGHT SIDE (SUMMARY) ================= -->
         <div class="col-lg-5">
             <h5 class="fw-bold mb-3">Order Summary</h5>
+
             <div class="card shadow-sm p-3 position-sticky" style="top:20px;">
 
+                <!-- ITEMS TOTAL -->
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Items Total</span>
-                    <span>₹{{ items_total|floatformat:2 }}</span>
+                    <span>₹{{ items_total|default:0|floatformat:2 }}</span>
                 </div>
 
+                <!-- DISCOUNT -->
                 <div class="d-flex justify-content-between mb-2 text-danger">
                     <span>Discount</span>
-                    <span>-₹{{ discount|floatformat:2 }}</span>
+                    <span>-₹{{ discount|default:0|floatformat:2 }}</span>
                 </div>
 
+                <!-- DELIVERY FEE -->
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Delivery Fee</span>
 
-                    {% if delivery_fee == 0 or delivery_fee == 0.00 %}
+                    {% if delivery_fee == 0 %}
                         <span class="text-success fw-semibold">FREE</span>
                     {% else %}
-                        <span class="text-success">₹{{ delivery_fee|floatformat:2 }}</span>
+                        <span class="text-success">
+                            ₹{{ delivery_fee|default:0|floatformat:2 }}
+                        </span>
                     {% endif %}
                 </div>
 
                 <hr>
 
+                <!-- TOTAL PAYABLE -->
                 <div class="d-flex justify-content-between fw-bold mb-3">
                     <span>Total Payable</span>
-                    <span class="text-dark">₹{{ total_amount|floatformat:2 }}</span>
+                    <span class="text-dark">
+                        ₹{{ total_amount|default:0|floatformat:2 }}
+                    </span>
                 </div>
 
                 <!-- PLACE ORDER -->
                 <form method="POST">
                     {% csrf_token %}
-                    <button class="btn btn-success w-100 py-2 fw-bold" {% if not address %}disabled{% endif %}>
+                    <button class="btn btn-success w-100 py-2 fw-bold"
+                            {% if not address %}disabled{% endif %}>
                         Confirm & Place Order
                     </button>
                 </form>
 
+                <!-- FOOTER NOTE -->
                 <small class="text-muted d-block text-center mt-2">
                     Safe & Secure Payments
                 </small>
+
             </div>
         </div>
     </div>

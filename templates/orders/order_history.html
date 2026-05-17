@@ -19,7 +19,7 @@
 
                     <div>
                         <div class="fw-semibold">
-                            Order #{{ order.id|truncatechars:12 }}
+                            Order #{{ order.id }}
                         </div>
                         <small class="text-muted">
                             {{ order.items.count }} items • {{ order.created_at|date:"d M Y" }}

@@ -1,16 +1,15 @@
 from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 
-from orders.models import Order, OrderItem
-from products.models import Product
 from accounts.models import Address
-from .models import Payment
 from carts.models import Cart
+from .models import Payment
+
+from orders.services import create_order_from_checkout
 
 
 class PaymentDetailView(View):
     def get(self, request):
-
         checkout_data = request.session.get("checkout_data")
 
         if not checkout_data:
@@ -29,34 +28,22 @@ class ProcessPaymentView(View):
         if not checkout_data:
             return redirect('cart')
 
-        address = Address.objects.filter(user=request.user, is_default=True).first()
+        address = Address.objects.filter(
+            user=request.user,
+            is_default=True
+        ).first()
+
         if not address:
             return redirect('address')
 
-        # ✅ CREATE ORDER HERE (ONLY HERE)
-        order = Order.objects.create(
+        # ✅ ORDER CREATE IS NOW IN ORDERS APP
+        order = create_order_from_checkout(
             user=request.user,
             address=address,
-            items_total=checkout_data["items_total"],
-            delivery_fee=checkout_data["delivery_fee"],
-            discount=checkout_data["discount"],
-            total_amount=checkout_data["total_amount"],
-            status="PLACED",
+            checkout_data=checkout_data
         )
 
-        # ✅ CREATE ITEMS
-        for item in checkout_data["items"]:
-            product = Product.objects.get(id=item["product_id"])
-
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                product_name=product.name,
-                price=product.price,
-                quantity=item["quantity"],
-            )
-
-        # ✅ PAYMENT CREATE
+        # ✅ PAYMENT ONLY RESPONSIBILITY
         Payment.objects.create(
             order=order,
             amount=order.total_amount,
